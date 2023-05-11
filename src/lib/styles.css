@@ -1,0 +1,15 @@
+@unocss;
+
+@layer components {
+	* {
+		user-select: none;
+	}
+}
+
+body {
+	@apply bg-yellow max-h-screen max-w-screen overflow-hidden;
+}
+
+h1 {
+	@apply font-bold;
+}
