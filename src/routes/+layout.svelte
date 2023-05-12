@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Reset CSS
 	import '@unocss/reset/tailwind.css'
-	// import '@unocss/reset/sanitize/reduce-motion.css'
+	import '@unocss/reset/sanitize/reduce-motion.css'
 	// Atomic CSS
 	import 'uno.css'
 	// Custom CSS
@@ -9,3 +9,9 @@
 </script>
 
 <slot />
+
+<style lang="postcss">
+	:global(body) {
+		@apply font-sans;
+	}
+</style>

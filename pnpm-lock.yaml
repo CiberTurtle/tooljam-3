@@ -1,6 +1,9 @@
 lockfileVersion: '6.0'
 
 devDependencies:
+  '@fontsource/fira-sans':
+    specifier: ^4.5.10
+    version: 4.5.10
   '@iconify-json/mdi':
     specifier: ^1.1.51
     version: 1.1.51
@@ -28,6 +31,9 @@ devDependencies:
   '@unocss/preset-uno':
     specifier: ^0.51.12
     version: 0.51.12
+  '@unocss/preset-web-fonts':
+    specifier: ^0.51.12
+    version: 0.51.12
   '@unocss/reset':
     specifier: ^0.51.12
     version: 0.51.12
@@ -46,6 +52,9 @@ devDependencies:
   svelte-check:
     specifier: ^3.0.1
     version: 3.3.2(postcss@8.4.23)(svelte@3.59.1)
+  svelte-preprocess-import-assets:
+    specifier: ^1.0.0
+    version: 1.0.0(svelte@3.59.1)
   tslib:
     specifier: ^2.4.1
     version: 2.5.0
@@ -290,6 +299,10 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@fontsource/fira-sans@4.5.10:
+    resolution: {integrity: sha512-4Edj+GA0LYSqfXOvdTwVGmCShT8Ycd8bKzdfzM302n+I6Hsg6h3gBkBeNgN19PhkcngDznZyHv3EkyrKqvMTGw==}
+    dev: true
 
   /@iconify-json/mdi@1.1.51:
     resolution: {integrity: sha512-fyf4N7GBaUw2A//v3vjsJ440qd69c+pN4PazOp6901ALM3QcKGAVWcISOhZ1J6jVF2zNsxrwMYHoOoP2UrAkCw==}
@@ -1388,6 +1401,24 @@ packages:
       svelte: '>=3.19.0'
     dependencies:
       svelte: 3.59.1
+    dev: true
+
+  /svelte-parse-markup@0.1.1(svelte@3.59.1):
+    resolution: {integrity: sha512-xCBSldaZdwi0u0ANASVCUFynCaV8z5D6sQOnzPcYSEoD9dd40MLzOKMBVmuTf/LUuPvc+cUvF132MnwdG7mDig==}
+    peerDependencies:
+      svelte: ^3.0.0
+    dependencies:
+      svelte: 3.59.1
+    dev: true
+
+  /svelte-preprocess-import-assets@1.0.0(svelte@3.59.1):
+    resolution: {integrity: sha512-iuRDcuTtZnqDnq+50LWGj6YF0tziqM7QK3X+o63uKfpsZw4sFnYzb8uerEY1s9EulPa4GVeMjWZDCPgOZu1chA==}
+    peerDependencies:
+      svelte: ^3.37.0
+    dependencies:
+      magic-string: 0.30.0
+      svelte: 3.59.1
+      svelte-parse-markup: 0.1.1(svelte@3.59.1)
     dev: true
 
   /svelte-preprocess@5.0.3(postcss@8.4.23)(svelte@3.59.1)(typescript@5.0.4):

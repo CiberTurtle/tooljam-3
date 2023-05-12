@@ -1,15 +1,13 @@
 @unocss;
 
-@layer components {
-	* {
-		user-select: none;
-	}
+* {
+	user-select: none;
 }
 
 body {
-	@apply bg-yellow max-h-screen max-w-screen overflow-hidden;
+	@apply bg-yellow max-h-screen max-w-screen overflow-hidden font-sans;
 }
 
 h1 {
-	@apply font-bold;
+	@apply font-medium text-2xl;
 }

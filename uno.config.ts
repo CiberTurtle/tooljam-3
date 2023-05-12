@@ -1,4 +1,4 @@
-import { defineConfig, presetUno, presetTypography, } from 'unocss'
+import { defineConfig, presetUno, presetTypography, presetWebFonts } from 'unocss'
 import extractorSvelte from '@unocss/extractor-svelte'
 import transformerVariantGroup from '@unocss/transformer-variant-group'
 import transformerDirectives from '@unocss/transformer-directives'
@@ -10,6 +10,12 @@ export default defineConfig({
 		presetTypography(),
 		presetIcons({
 			scale: 1.5,
+		}),
+		presetWebFonts({
+			provider: 'fontshare',
+			fonts: {
+				sans: ['Nippo']
+			}
 		}),
 	],
 	extractors: [
