@@ -29,7 +29,6 @@ function _smart_canvas_on_resize(canvas: HTMLCanvasElement, entry: ResizeObserve
 		// rounding just in case
 		canvas.width = Math.round(entry.devicePixelContentBoxSize[0].inlineSize)
 		canvas.height = Math.round(entry.devicePixelContentBoxSize[0].blockSize)
-		console.log()
 
 		return
 	}

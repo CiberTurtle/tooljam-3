@@ -10,7 +10,6 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
 	},
 	"devDependencies": {
-		"@fontsource/fira-sans": "^4.5.10",
 		"@iconify-json/mdi": "^1.1.51",
 		"@iconify-json/pixelarticons": "^1.1.6",
 		"@sveltejs/adapter-auto": "^2.0.0",
@@ -33,5 +32,8 @@
 		"unocss": "^0.51.12",
 		"vite": "^4.3.0"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"sharp": "^0.32.1"
+	}
 }

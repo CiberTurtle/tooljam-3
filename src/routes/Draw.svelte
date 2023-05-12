@@ -3,9 +3,19 @@
 	import { onMount } from 'svelte'
 
 	type Grid = [boolean[]]
+	type PointInfo = {
+		px: number
+		py: number
+		cx: number
+		cy: number
+		ix: number
+		iy: number
+	}
 
 	let canvas: HTMLCanvasElement
 	let ctx: CanvasRenderingContext2D
+	let scrollX = 0
+	let scrollY = 0
 
 	let width = 16
 	let height = 16
@@ -13,6 +23,8 @@
 	let ystep = 0
 
 	let grid: Grid = gen_grid(width, height)
+
+	let frame_count = 0
 
 	function gen_grid(width: number, height: number): Grid {
 		let cols = new Array(width) as Grid
@@ -26,17 +38,54 @@
 		return cols
 	}
 
+	let fill_value = true
+	let pointer_down = false
 	function pointerdown(event: PointerEvent) {
-		const bounds = canvas.getBoundingClientRect()
-		const mx = event.clientX - bounds.left
-		const my = event.clientY - bounds.top
-		const cx = mx / (canvas.width / width)
-		const cy = my / (canvas.height / height)
-		// console.log({ mx, my, cx, cy })
+		const point = transform_point(event)
 
-		// console.log(grid)
-		grid[Math.floor(cx)][Math.floor(cy)] = !grid[Math.floor(cx)][Math.floor(cy)]
+		fill_value = !grid[point.ix][point.iy]
+		grid[point.ix][point.iy] = fill_value
+
+		pointer_down = true
+		document.addEventListener(
+			'pointerup',
+			(ev) => {
+				if (ev.pointerId != event.pointerId) return
+				pointer_down = false
+			},
+			{ once: true }
+		)
+
 		render()
+	}
+
+	function pointermove(event: PointerEvent) {
+		if (!pointer_down) return
+
+		const point = transform_point(event)
+
+		const value = grid[point.ix][point.iy]
+		if (value == fill_value) return
+
+		grid[point.ix][point.iy] = fill_value
+		render()
+	}
+
+	function transform_point(event: PointerEvent): PointInfo {
+		const bounds = canvas.getBoundingClientRect()
+		const px = (event.clientX - bounds.left) * (canvas.width / bounds.width) + scrollX
+		const py = (event.clientY - bounds.top) * (canvas.height / bounds.height) + scrollY
+		const cx = px / (canvas.width / width)
+		const cy = py / (canvas.height / height)
+
+		return {
+			px,
+			py,
+			cx,
+			cy,
+			ix: Math.floor(cx),
+			iy: Math.floor(cy),
+		}
 	}
 
 	onMount(() => {
@@ -54,26 +103,141 @@
 
 	function render() {
 		if (!ctx) return
-		ctx.imageSmoothingEnabled = false
-		ctx.imageSmoothingQuality = 'low'
+		frame_count++
+
+		ctx.imageSmoothingEnabled = true
+		ctx.imageSmoothingQuality = 'medium'
+		ctx.resetTransform()
+
 		ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-		ctx.save()
-		ctx.fillStyle = 'red'
+		ctx.translate(-scrollX, -scrollY)
+
+		ctx.fillStyle = 'black'
+		ctx.scale(xstep, ystep)
+		const BOUNDS = false
 		for (let y = 0; y < height; y++) {
 			for (let x = 0; x < width; x++) {
-				const cell = grid[x][y]
+				const c = grid[x][y]
+				const l = x <= 0 ? BOUNDS : grid[x - 1][y]
+				const r = x >= width - 1 ? BOUNDS : grid[x + 1][y]
+				const t = y <= 0 ? BOUNDS : grid[x][y - 1]
+				const b = y >= height - 1 ? BOUNDS : grid[x][y + 1]
 
-				// ctx.fillRect(x * xstep, y * ystep, xstep, ystep)
-				if (cell == true) {
-					ctx.fillRect(x * xstep, y * ystep, xstep, ystep)
+				ctx.fillStyle = 'black'
+
+				if (c && !t && r && b && !l) {
+					ctx.beginPath()
+					ctx.moveTo(x, y + 1)
+					ctx.quadraticCurveTo(x, y, x + 1, y)
+					ctx.lineTo(x + 1, y + 1)
+					ctx.fill()
+					continue
+				}
+
+				if (c && !t && !r && b && l) {
+					ctx.beginPath()
+					ctx.moveTo(x, y)
+					ctx.quadraticCurveTo(x + 1, y, x + 1, y + 1)
+					ctx.lineTo(x, y + 1)
+					ctx.fill()
+					continue
+				}
+
+				if (c && t && r && !b && !l) {
+					ctx.beginPath()
+					ctx.moveTo(x, y)
+					ctx.quadraticCurveTo(x, y + 1, x + 1, y + 1)
+					ctx.lineTo(x + 1, y)
+					ctx.fill()
+					continue
+				}
+
+				if (c && t && !r && !b && l) {
+					ctx.beginPath()
+					ctx.moveTo(x, y + 1)
+					ctx.quadraticCurveTo(x + 1, y + 1, x + 1, y)
+					ctx.lineTo(x, y)
+					ctx.fill()
+					continue
+				}
+
+				if (c && !t && !r && b && !l) {
+					ctx.beginPath()
+					ctx.moveTo(x, y + 1)
+					ctx.lineTo(x, y + 0.5)
+					ctx.quadraticCurveTo(x, y, x + 0.5, y)
+					ctx.quadraticCurveTo(x + 1, y, x + 1, y + 0.5)
+					ctx.lineTo(x + 1, y + 1)
+					ctx.fill()
+					continue
+				}
+
+				if (c && t && !r && !b && !l) {
+					ctx.beginPath()
+					ctx.moveTo(x, y)
+					ctx.lineTo(x, y + 0.5)
+					ctx.quadraticCurveTo(x, y + 1, x + 0.5, y + 1)
+					ctx.quadraticCurveTo(x + 1, y + 1, x + 1, y + 0.5)
+					ctx.lineTo(x + 1, y)
+					ctx.fill()
+					continue
+				}
+
+				if (c && !t && r && !b && !l) {
+					ctx.beginPath()
+					ctx.moveTo(x + 1, y)
+					ctx.lineTo(x + 0.5, y)
+					ctx.quadraticCurveTo(x, y, x, y + 0.5)
+					ctx.quadraticCurveTo(x, y + 1, x + 0.5, y + 1)
+					ctx.lineTo(x + 1, y + 1)
+					ctx.fill()
+					continue
+				}
+
+				if (c && !t && !r && !b && l) {
+					ctx.beginPath()
+					ctx.moveTo(x, y)
+					ctx.lineTo(x + 0.5, y)
+					ctx.quadraticCurveTo(x + 1, y, x + 1, y + 0.5)
+					ctx.quadraticCurveTo(x + 1, y + 1, x + 0.5, y + 1)
+					ctx.lineTo(x, y + 1)
+					ctx.fill()
+					continue
+				}
+
+				if (!c && !t && r && b && !l) {
+					ctx.beginPath()
+					ctx.moveTo(x, y + 1)
+					ctx.lineTo(x + 0.5, y + 1)
+					ctx.quadraticCurveTo(x + 1, y + 1, x + 1, y + 0.5)
+					// ctx.quadraticCurveTo(x + 1, y + 1, x + 1, y + 0.5)
+					ctx.lineTo(x + 1, y + 1)
+					ctx.fill()
+					continue
+				}
+
+				if (!c && t && !r && !b && l) {
+					ctx.beginPath()
+					ctx.moveTo(x, y + 1)
+					ctx.lineTo(x, y + 0.5)
+					ctx.quadraticCurveTo(x, y, x + 0.5, y)
+					ctx.lineTo(x, y)
+					ctx.fill()
+					continue
+				}
+
+				if (c == true) {
+					ctx.fillRect(x, y, 1, 1)
 				}
 			}
 		}
-		ctx.restore()
 
-		ctx.save()
-		ctx.strokeStyle = 'hsl(0deg 0% 75% / 1)'
+		ctx.strokeStyle = 'hsl(0deg 0% 50% / .5)'
+		// ctx.strokeStyle = 'red'
+		ctx.resetTransform()
+		ctx.translate(-scrollX, -scrollY)
+		ctx.beginPath()
 		for (let index = 1; index < width; index++) {
 			ctx.moveTo(index * xstep, 0)
 			ctx.lineTo(index * xstep, canvas.height)
@@ -82,8 +246,40 @@
 			ctx.moveTo(0, index * ystep)
 			ctx.lineTo(canvas.width, index * ystep)
 		}
+		// ctx.stroke()
+
+		ctx.save()
+		ctx.resetTransform()
+		ctx.translate(24, 24)
+
+		ctx.fillStyle = 'white'
+		ctx.strokeStyle = 'black'
+		ctx.lineCap = 'round'
+		ctx.lineWidth = 2
+
+		ctx.beginPath()
+		ctx.ellipse(0, 0, 20, 20, 0, 0, Math.PI * 2)
+		ctx.fill()
+
+		ctx.beginPath()
+		ctx.ellipse(0, 0, 16, 16, 0, 0, Math.PI * 2)
 		ctx.stroke()
+
+		ctx.rotate((frame_count / 12) * Math.PI * 2)
+
+		ctx.beginPath()
+		ctx.moveTo(0, 0)
+		ctx.lineTo(10, 0)
+		ctx.stroke()
+
 		ctx.restore()
+	}
+
+	function wheel(event: WheelEvent) {
+		return
+		scrollX += event.deltaX
+		scrollY += event.deltaY
+		render()
 	}
 </script>
 
@@ -97,9 +293,11 @@
 	<div class="relative w-full h-full">
 		<canvas
 			bind:this={canvas}
-			class="absolute w-full h-full bg-white image-render-pixel"
+			class="absolute w-full h-full bg-white"
 			use:smart_canvas={resized}
 			on:pointerdown={pointerdown}
+			on:pointermove={pointermove}
+			on:wheel={wheel}
 		/>
 	</div>
 </div>
