@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { smart_canvas } from '$lib/directives/canvas'
 	import { onMount } from 'svelte'
-	import { generate, inner_curve, outer_curve } from './generator'
+	import { generate } from './generator'
 
 	type Grid = [boolean[]]
 	type PointInfo = {
@@ -76,8 +76,8 @@
 		const bounds = canvas.getBoundingClientRect()
 		const px = (event.clientX - bounds.left) * (canvas.width / bounds.width) + scrollX
 		const py = (event.clientY - bounds.top) * (canvas.height / bounds.height) + scrollY
-		const cx = px / (canvas.width / width)
-		const cy = py / (canvas.height / height)
+		const cx = px / scale
+		const cy = py / scale
 
 		return {
 			px,
@@ -95,9 +95,11 @@
 		render()
 	})
 
+	let scale = 1
 	function resized() {
 		xstep = canvas.width / width
 		ystep = canvas.height / height
+		scale = Math.min(xstep, ystep)
 
 		render()
 	}
@@ -116,7 +118,7 @@
 		ctx.translate(-scrollX, -scrollY)
 
 		ctx.fillStyle = 'black'
-		ctx.scale(xstep, ystep)
+		ctx.scale(scale, scale)
 		generate(ctx, grid)
 
 		// ctx.strokeStyle = 'hsl(0deg 0% 50% / .5)'
@@ -184,6 +186,7 @@
 	<div class="flex flex-row items-center gap-2 p-2">
 		<div class="i-pixelarticons-image" />
 		<h1>Flowgrid</h1>
+		<span>(work in progress jam version)</span>
 	</div>
 
 	<div class="relative w-full h-full">
