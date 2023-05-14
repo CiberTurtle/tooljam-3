@@ -5,9 +5,16 @@
 }
 
 body {
-	@apply bg-yellow max-h-screen max-w-screen overflow-hidden font-sans;
+	@apply bg-[var(--bg)] color-[var(--fg)] max-h-screen max-w-screen overflow-hidden font-sans;
 }
 
 h1 {
 	@apply font-medium text-2xl;
+}
+
+button {
+	@apply: px-4;
+}
+button:hover {
+	@apply: bg-[var(--fg)] color-[var(--bg)];
 }

@@ -92,6 +92,12 @@
 	onMount(() => {
 		if (!canvas) return
 		ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+
+		const json = localStorage.getItem('flowgrid')
+		if (json) {
+			grid = JSON.parse(json)
+		}
+
 		render()
 	})
 
@@ -108,16 +114,19 @@
 		if (!ctx) return
 		frame_count++
 
+		const styles = getComputedStyle(canvas)
+		const fg = styles.color
+		const bg = styles.getPropertyValue('--bg')
+
 		ctx.imageSmoothingEnabled = true
-		ctx.imageSmoothingQuality = 'medium'
+		ctx.imageSmoothingQuality = 'high'
 		ctx.resetTransform()
 
-		ctx.fillStyle = 'white'
-		ctx.fillRect(0, 0, canvas.width, canvas.height)
+		ctx.clearRect(0, 0, canvas.width, canvas.height)
 
 		ctx.translate(-scrollX, -scrollY)
 
-		ctx.fillStyle = 'black'
+		ctx.fillStyle = fg
 		ctx.scale(scale, scale)
 		generate(ctx, grid)
 
@@ -150,8 +159,8 @@
 		ctx.resetTransform()
 		ctx.translate(24, 24)
 
-		ctx.fillStyle = 'white'
-		ctx.strokeStyle = 'black'
+		ctx.fillStyle = bg
+		ctx.strokeStyle = fg
 		ctx.lineCap = 'round'
 		ctx.lineWidth = 2
 
@@ -179,20 +188,47 @@
 		scrollY += event.deltaY
 		render()
 	}
+
+	function save() {
+		localStorage.setItem('flowgrid', JSON.stringify(grid))
+	}
+
+	function load() {
+		const json = localStorage.getItem('flowgrid')
+		if (!json) {
+			alert('No save data')
+			return
+		}
+
+		grid = JSON.parse(json)
+		render()
+	}
+
+	function clear() {
+		if (!confirm('Are you sure you want to clear?')) return
+		grid = gen_grid(width, height)
+		render()
+	}
 </script>
 
-<div class="flex flex-col bg-white">
+<div class="flex flex-col">
 	<!-- Header -->
-	<div class="flex flex-row items-center gap-2 p-2">
+	<div class="flex flex-row items-center gap-2 p-8 items-center">
 		<div class="i-pixelarticons-image" />
 		<h1>Flowgrid</h1>
 		<span>(work in progress jam version)</span>
+		<div class="flex-grow-1" />
+		<div class="flex flex-row items-stretch h-full">
+			<button on:click={clear}>Clear</button>
+			<button on:click={save}>Save</button>
+			<button on:click={load}>Load</button>
+		</div>
 	</div>
 
-	<div class="relative w-full h-full">
+	<div class="m-8 relative w-full h-full">
 		<canvas
 			bind:this={canvas}
-			class="absolute w-full h-full bg-white"
+			class="absolute w-full h-full"
 			use:smart_canvas={resized}
 			on:pointerdown={pointerdown}
 			on:pointermove={pointermove}

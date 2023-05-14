@@ -13,5 +13,7 @@
 <style lang="postcss">
 	:global(body) {
 		@apply font-sans;
+		--fg: #ffffe3;
+		--bg: #10100e;
 	}
 </style>

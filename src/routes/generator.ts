@@ -70,9 +70,16 @@ export function block(ctx: CanvasRenderingContext2D, x: number, y: number, xflip
 
 export function outer_curve(ctx: CanvasRenderingContext2D, x: number, y: number, xflip: number, yflip: number): void {
 	ctx.beginPath()
-	ctx.moveTo(x + xflip, y + .5)
-	// ctx.lineTo(x + .5, y + yflip)
-	ctx.quadraticCurveTo(x + xflip, y + yflip, x + .5, y + yflip)
+	let rotation = Math.PI
+	if (xflip == 1 && yflip == 1)
+		rotation = 0
+	else if (yflip == 1)
+		rotation = Math.PI / 2
+	else if (xflip == 1)
+		rotation = Math.PI / 2 * 3
+	ctx.ellipse(x + .5, y + .5, .5, .5, rotation, 0, Math.PI / 2)
+	// ctx.moveTo(x + xflip, y + .5)
+	// ctx.quadraticCurveTo(x + xflip, y + yflip, x + .5, y + yflip)
 	ctx.lineTo(x + .5, y + .5)
 	ctx.fill()
 }
@@ -82,7 +89,6 @@ export function inner_curve(ctx: CanvasRenderingContext2D, x: number, y: number,
 	ctx.moveTo(x + xflip, y + (1 - yflip))
 	ctx.lineTo(x + xflip, y + .5)
 	ctx.quadraticCurveTo(x + xflip, y + yflip, x + .5, y + yflip)
-	// ctx.lineTo(x + .5, y + yflip)
 	ctx.lineTo(x + xflip, y + yflip)
 	ctx.fill()
 }
