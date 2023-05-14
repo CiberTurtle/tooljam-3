@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { smart_canvas } from '$lib/directives/canvas'
 	import { onMount } from 'svelte'
+	import { generate, inner_curve, outer_curve } from './generator'
 
 	type Grid = [boolean[]]
 	type PointInfo = {
@@ -109,144 +110,39 @@
 		ctx.imageSmoothingQuality = 'medium'
 		ctx.resetTransform()
 
-		ctx.clearRect(0, 0, canvas.width, canvas.height)
+		ctx.fillStyle = 'white'
+		ctx.fillRect(0, 0, canvas.width, canvas.height)
 
 		ctx.translate(-scrollX, -scrollY)
 
 		ctx.fillStyle = 'black'
 		ctx.scale(xstep, ystep)
-		const BOUNDS = false
-		for (let y = 0; y < height; y++) {
-			for (let x = 0; x < width; x++) {
-				const c = grid[x][y]
-				const l = x <= 0 ? BOUNDS : grid[x - 1][y]
-				const r = x >= width - 1 ? BOUNDS : grid[x + 1][y]
-				const t = y <= 0 ? BOUNDS : grid[x][y - 1]
-				const b = y >= height - 1 ? BOUNDS : grid[x][y + 1]
+		generate(ctx, grid)
 
-				ctx.fillStyle = 'black'
-
-				if (c && !t && r && b && !l) {
-					ctx.beginPath()
-					ctx.moveTo(x, y + 1)
-					ctx.quadraticCurveTo(x, y, x + 1, y)
-					ctx.lineTo(x + 1, y + 1)
-					ctx.fill()
-					continue
-				}
-
-				if (c && !t && !r && b && l) {
-					ctx.beginPath()
-					ctx.moveTo(x, y)
-					ctx.quadraticCurveTo(x + 1, y, x + 1, y + 1)
-					ctx.lineTo(x, y + 1)
-					ctx.fill()
-					continue
-				}
-
-				if (c && t && r && !b && !l) {
-					ctx.beginPath()
-					ctx.moveTo(x, y)
-					ctx.quadraticCurveTo(x, y + 1, x + 1, y + 1)
-					ctx.lineTo(x + 1, y)
-					ctx.fill()
-					continue
-				}
-
-				if (c && t && !r && !b && l) {
-					ctx.beginPath()
-					ctx.moveTo(x, y + 1)
-					ctx.quadraticCurveTo(x + 1, y + 1, x + 1, y)
-					ctx.lineTo(x, y)
-					ctx.fill()
-					continue
-				}
-
-				if (c && !t && !r && b && !l) {
-					ctx.beginPath()
-					ctx.moveTo(x, y + 1)
-					ctx.lineTo(x, y + 0.5)
-					ctx.quadraticCurveTo(x, y, x + 0.5, y)
-					ctx.quadraticCurveTo(x + 1, y, x + 1, y + 0.5)
-					ctx.lineTo(x + 1, y + 1)
-					ctx.fill()
-					continue
-				}
-
-				if (c && t && !r && !b && !l) {
-					ctx.beginPath()
-					ctx.moveTo(x, y)
-					ctx.lineTo(x, y + 0.5)
-					ctx.quadraticCurveTo(x, y + 1, x + 0.5, y + 1)
-					ctx.quadraticCurveTo(x + 1, y + 1, x + 1, y + 0.5)
-					ctx.lineTo(x + 1, y)
-					ctx.fill()
-					continue
-				}
-
-				if (c && !t && r && !b && !l) {
-					ctx.beginPath()
-					ctx.moveTo(x + 1, y)
-					ctx.lineTo(x + 0.5, y)
-					ctx.quadraticCurveTo(x, y, x, y + 0.5)
-					ctx.quadraticCurveTo(x, y + 1, x + 0.5, y + 1)
-					ctx.lineTo(x + 1, y + 1)
-					ctx.fill()
-					continue
-				}
-
-				if (c && !t && !r && !b && l) {
-					ctx.beginPath()
-					ctx.moveTo(x, y)
-					ctx.lineTo(x + 0.5, y)
-					ctx.quadraticCurveTo(x + 1, y, x + 1, y + 0.5)
-					ctx.quadraticCurveTo(x + 1, y + 1, x + 0.5, y + 1)
-					ctx.lineTo(x, y + 1)
-					ctx.fill()
-					continue
-				}
-
-				if (!c && !t && r && b && !l) {
-					ctx.beginPath()
-					ctx.moveTo(x, y + 1)
-					ctx.lineTo(x + 0.5, y + 1)
-					ctx.quadraticCurveTo(x + 1, y + 1, x + 1, y + 0.5)
-					// ctx.quadraticCurveTo(x + 1, y + 1, x + 1, y + 0.5)
-					ctx.lineTo(x + 1, y + 1)
-					ctx.fill()
-					continue
-				}
-
-				if (!c && t && !r && !b && l) {
-					ctx.beginPath()
-					ctx.moveTo(x, y + 1)
-					ctx.lineTo(x, y + 0.5)
-					ctx.quadraticCurveTo(x, y, x + 0.5, y)
-					ctx.lineTo(x, y)
-					ctx.fill()
-					continue
-				}
-
-				if (c == true) {
-					ctx.fillRect(x, y, 1, 1)
-				}
-			}
-		}
-
-		ctx.strokeStyle = 'hsl(0deg 0% 50% / .5)'
-		// ctx.strokeStyle = 'red'
-		ctx.resetTransform()
-		ctx.translate(-scrollX, -scrollY)
-		ctx.beginPath()
-		for (let index = 1; index < width; index++) {
-			ctx.moveTo(index * xstep, 0)
-			ctx.lineTo(index * xstep, canvas.height)
-		}
-		for (let index = 1; index < height; index++) {
-			ctx.moveTo(0, index * ystep)
-			ctx.lineTo(canvas.width, index * ystep)
-		}
+		// ctx.strokeStyle = 'hsl(0deg 0% 50% / .5)'
+		// ctx.resetTransform()
+		// ctx.translate(-scrollX, -scrollY)
+		// ctx.beginPath()
+		// for (let index = 1; index < width; index++) {
+		// 	ctx.moveTo(index * xstep, 0)
+		// 	ctx.lineTo(index * xstep, canvas.height)
+		// }
+		// for (let index = 1; index < height; index++) {
+		// 	ctx.moveTo(0, index * ystep)
+		// 	ctx.lineTo(canvas.width, index * ystep)
+		// }
 		// ctx.stroke()
+
+		// ctx.resetTransform()
+		// ctx.translate(-scrollX, -scrollY)
+		// ctx.fillStyle = 'white'
+		// ctx.globalCompositeOperation = 'difference'
+		// for (let y = 0; y < height + 1; y++) {
+		// 	for (let x = 0; x < width + 1; x++) {
+		// 		ctx.fillRect(x * xstep - 1, y * ystep - 1, 3, 3)
+		// 	}
+		// }
+		// ctx.globalCompositeOperation = 'source-over'
 
 		ctx.save()
 		ctx.resetTransform()
