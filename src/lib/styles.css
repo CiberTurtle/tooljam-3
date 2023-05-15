@@ -5,7 +5,7 @@
 }
 
 body {
-	@apply bg-[var(--bg)] color-[var(--fg)] max-h-screen max-w-screen overflow-hidden font-sans;
+	@apply bg-bg color-fg max-h-screen max-w-screen overflow-hidden font-sans;
 }
 
 h1 {
@@ -14,8 +14,13 @@ h1 {
 
 button {
 	@apply: px-4 font-bold;
+	transition: none;
 }
 
-button:hover, button:active {
-	@apply: bg-[var(--fg)] color-[var(--bg)];
+button:hover {
+	@apply underline underline-2 underline-offset-2;
+}
+
+button:active {
+	@apply: decoration-none bg-fg color-bg;
 }

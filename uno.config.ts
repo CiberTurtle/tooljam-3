@@ -5,12 +5,16 @@ import transformerDirectives from '@unocss/transformer-directives'
 import presetIcons from '@unocss/preset-icons'
 
 export default defineConfig({
+	theme: {
+		colors: {
+			fg: 'var(--fg)',
+			bg: 'var(--bg)',
+		}
+	},
 	presets: [
 		presetUno(),
 		presetTypography(),
-		presetIcons({
-			scale: 1.5,
-		}),
+		presetIcons(),
 		presetWebFonts({
 			provider: 'fontshare',
 			fonts: {
