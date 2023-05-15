@@ -13,8 +13,9 @@ h1 {
 }
 
 button {
-	@apply: px-4;
+	@apply: px-4 font-bold;
 }
-button:hover {
+
+button:hover, button:active {
 	@apply: bg-[var(--fg)] color-[var(--bg)];
 }

@@ -15,8 +15,8 @@
 
 	let canvas: HTMLCanvasElement
 	let ctx: CanvasRenderingContext2D
-	let scrollX = 0
-	let scrollY = 0
+	let xscroll = 0
+	let yscroll = 0
 
 	let width = 16
 	let height = 16
@@ -74,8 +74,8 @@
 
 	function transform_point(event: PointerEvent): PointInfo {
 		const bounds = canvas.getBoundingClientRect()
-		const px = (event.clientX - bounds.left) * (canvas.width / bounds.width) + scrollX
-		const py = (event.clientY - bounds.top) * (canvas.height / bounds.height) + scrollY
+		const px = (event.clientX - bounds.left) * (canvas.width / bounds.width) + xscroll
+		const py = (event.clientY - bounds.top) * (canvas.height / bounds.height) + yscroll
 		const cx = px / scale
 		const cy = py / scale
 
@@ -106,6 +106,9 @@
 		xstep = canvas.width / width
 		ystep = canvas.height / height
 		scale = Math.min(xstep, ystep)
+		xscroll = canvas.width - width * scale
+		xscroll = -xscroll / 2
+		console.log(xscroll)
 
 		render()
 	}
@@ -120,44 +123,34 @@
 
 		ctx.imageSmoothingEnabled = true
 		ctx.imageSmoothingQuality = 'high'
+
 		ctx.resetTransform()
 
 		ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-		ctx.translate(-scrollX, -scrollY)
+		ctx.translate(-xscroll, -yscroll)
 
 		ctx.fillStyle = fg
 		ctx.scale(scale, scale)
 		generate(ctx, grid)
 
-		// ctx.strokeStyle = 'hsl(0deg 0% 50% / .5)'
-		// ctx.resetTransform()
-		// ctx.translate(-scrollX, -scrollY)
-		// ctx.beginPath()
-		// for (let index = 1; index < width; index++) {
-		// 	ctx.moveTo(index * xstep, 0)
-		// 	ctx.lineTo(index * xstep, canvas.height)
-		// }
-		// for (let index = 1; index < height; index++) {
-		// 	ctx.moveTo(0, index * ystep)
-		// 	ctx.lineTo(canvas.width, index * ystep)
-		// }
-		// ctx.stroke()
-
-		// ctx.resetTransform()
-		// ctx.translate(-scrollX, -scrollY)
-		// ctx.fillStyle = 'white'
-		// ctx.globalCompositeOperation = 'difference'
-		// for (let y = 0; y < height + 1; y++) {
-		// 	for (let x = 0; x < width + 1; x++) {
-		// 		ctx.fillRect(x * xstep - 1, y * ystep - 1, 3, 3)
-		// 	}
-		// }
-		// ctx.globalCompositeOperation = 'source-over'
+		ctx.resetTransform()
+		ctx.translate(-xscroll, -yscroll)
+		ctx.beginPath()
+		ctx.fillStyle = fg
+		ctx.globalCompositeOperation = 'difference'
+		for (let y = 0; y < height + 1; y++) {
+			for (let x = 0; x < width + 1; x++) {
+				ctx.moveTo(x * scale, y * scale)
+				ctx.ellipse(x * scale, y * scale, 1, 1, 0, 0, Math.PI * 2)
+			}
+		}
+		ctx.fill()
+		ctx.globalCompositeOperation = 'source-over'
 
 		ctx.save()
 		ctx.resetTransform()
-		ctx.translate(24, 24)
+		ctx.translate(32, 32)
 
 		ctx.fillStyle = bg
 		ctx.strokeStyle = fg
@@ -184,8 +177,8 @@
 
 	function wheel(event: WheelEvent) {
 		return
-		scrollX += event.deltaX
-		scrollY += event.deltaY
+		xscroll += event.deltaX
+		yscroll += event.deltaY
 		render()
 	}
 
@@ -216,7 +209,7 @@
 	<div class="flex flex-row items-center gap-2 p-8 items-center">
 		<div class="i-pixelarticons-image" />
 		<h1>Flowgrid</h1>
-		<span>(work in progress jam version)</span>
+		<span>(work in progress post-jam version)</span>
 		<div class="flex-grow-1" />
 		<div class="flex flex-row items-stretch h-full">
 			<button on:click={clear}>Clear</button>
@@ -225,7 +218,7 @@
 		</div>
 	</div>
 
-	<div class="m-8 relative w-full h-full">
+	<div class="relative w-full h-full">
 		<canvas
 			bind:this={canvas}
 			class="absolute w-full h-full"

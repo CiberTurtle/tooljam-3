@@ -13,7 +13,8 @@
 <style lang="postcss">
 	:global(body) {
 		@apply font-sans;
-		--fg: #ffffe3;
-		--bg: #10100e;
+		--hue: 60;
+		--fg: hsl(var(--hue), 100%, 95%);
+		--bg: hsl(var(--hue), 7%, 6%);
 	}
 </style>
