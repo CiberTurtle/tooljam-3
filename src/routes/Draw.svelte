@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { smart_canvas } from '$lib/directives/canvas'
 	import { onMount } from 'svelte'
-	import { generate } from './generator'
+	import { PathDriver, CircleGeneratorDriver, generate, SvgPathDriver } from './generator'
 
 	type Grid = [boolean[]]
 	type PointInfo = {
@@ -15,21 +15,25 @@
 
 	let canvas: HTMLCanvasElement
 	let ctx: CanvasRenderingContext2D
-	let header_height = 0
-	let footer_height = 64
+	let canvas_generator = new CircleGeneratorDriver()
+	let path_driver = new PathDriver()
+	let svg_path_driver = new SvgPathDriver()
+	let header_height = 96
+	let footer_height = 96
 
 	let xscroll = 0
 	let yscroll = 0
 	let xoffset = 0
 	let yoffset = 0
 
+	function get_scale(): number {
+		return base_scale * zoom
+	}
+	let base_scale = 1
 	let zoom = 1
-	let cell_scale = 1
 
-	let width = 16
+	let width = 32
 	let height = 16
-	let xstep = 0
-	let ystep = 0
 
 	let grid: Grid = gen_grid(width, height)
 
@@ -38,7 +42,7 @@
 	function gen_grid(width: number, height: number): Grid {
 		let cols = new Array(width) as Grid
 
-		for (let index = 0; index < height; index++) {
+		for (let index = 0; index < width; index++) {
 			let row = new Array(height)
 			row.fill(false)
 			cols[index] = row
@@ -68,6 +72,7 @@
 		fill_value = !grid[point.ix][point.iy]
 		grid[point.ix][point.iy] = fill_value
 
+		regenerate()
 		render()
 	}
 
@@ -84,10 +89,11 @@
 		if (value == fill_value) return
 		grid[point.ix][point.iy] = fill_value
 
+		regenerate()
 		render()
 	}
 
-	function transform_point(event: PointerEvent): PointInfo {
+	function transform_point(event: { clientX: number; clientY: number }): PointInfo {
 		const bounds = canvas.getBoundingClientRect()
 		let px = (event.clientX - bounds.left) * (canvas.width / bounds.width)
 		let py = (event.clientY - bounds.top) * (canvas.height / bounds.height)
@@ -95,8 +101,8 @@
 		py -= yoffset
 		px += xscroll
 		py += yscroll
-		let cx = px / cell_scale
-		let cy = py / cell_scale
+		let cx = px / get_scale()
+		let cy = py / get_scale()
 
 		return {
 			px,
@@ -121,17 +127,24 @@
 			render()
 		})
 
+		regenerate()
 		render()
 	})
 
 	function resized() {
-		cell_scale = (canvas.height - header_height - footer_height) / height
+		base_scale = (canvas.height - header_height - footer_height) / height
 
-		xoffset = (canvas.width - width * cell_scale) / 2
+		xoffset = (canvas.width - width * get_scale()) / 2
 		yoffset =
-			(canvas.height - header_height - footer_height - height * cell_scale) / 2 + header_height
+			(canvas.height - header_height - footer_height - height * get_scale()) / 2 + header_height
 
 		render()
+	}
+
+	function regenerate() {
+		path_driver.path = new Path2D()
+		canvas_generator.driver = path_driver
+		generate(canvas_generator, grid)
 	}
 
 	function render() {
@@ -153,20 +166,23 @@
 		ctx.translate(xoffset - xscroll, yoffset - yscroll)
 
 		ctx.fillStyle = fg
-		ctx.scale(cell_scale * zoom, cell_scale * zoom)
-		generate(ctx, grid)
+		ctx.scale(get_scale(), get_scale())
+		ctx.fill(path_driver.path)
 
 		ctx.resetTransform()
 		ctx.translate(xoffset - xscroll, yoffset - yscroll)
 		ctx.beginPath()
 		ctx.fillStyle = fg
+		ctx.lineWidth = 6
 		ctx.globalCompositeOperation = 'difference'
-		for (let y = 0; y < height + 1; y++) {
-			for (let x = 0; x < width + 1; x++) {
-				ctx.moveTo(x * cell_scale * zoom, y * cell_scale * zoom)
-				ctx.ellipse(x * cell_scale * zoom, y * cell_scale * zoom, 1, 1, 0, 0, Math.PI * 2)
+		const dot_size = lerp(0.5, 3, smoothstep(0.5, 1, zoom))
+		for (let y = 0; y <= height; y++) {
+			for (let x = 0; x <= width; x++) {
+				ctx.moveTo(x * get_scale(), y * get_scale())
+				ctx.ellipse(x * get_scale(), y * get_scale(), dot_size, dot_size, 0, 0, Math.PI * 2)
 			}
 		}
+		ctx.strokeRect(0, 0, width * get_scale(), height * get_scale())
 		ctx.fill()
 		ctx.globalCompositeOperation = 'source-over'
 
@@ -177,7 +193,7 @@
 		ctx.fillStyle = bg
 		ctx.strokeStyle = fg
 		ctx.lineCap = 'round'
-		ctx.lineWidth = 2
+		ctx.lineWidth = 4
 
 		ctx.beginPath()
 		ctx.ellipse(0, 0, 24, 24, 0, 0, Math.PI * 2)
@@ -191,24 +207,43 @@
 
 		ctx.beginPath()
 		ctx.moveTo(0, 0)
-		ctx.lineTo(12, 0)
+		ctx.lineTo(10, 0)
 		ctx.stroke()
 
 		ctx.restore()
+	}
+
+	function lerp(a: number, b: number, t: number): number {
+		return a * (1 - t) + b * t
+	}
+
+	function smoothstep(min: number, max: number, value: number) {
+		var x = Math.max(0, Math.min(1, (value - min) / (max - min)))
+		return x * x * (3 - 2 * x)
 	}
 
 	function wheel(event: WheelEvent) {
 		event.preventDefault()
 
 		if (event.ctrlKey) {
-			zoom -= (event.deltaY / window.screen.height) * 10
-			zoom = Math.min(Math.max(zoom, 1), 4)
+			const old_point = transform_point(event)
+			const old_zoom = zoom
+
+			zoom *= event.deltaY > 0 ? 0.975 : 1.025
+			zoom = Math.min(Math.max(zoom, 0.5), 2)
+
+			const new_point = transform_point(event)
+			const zoom_delta = zoom - old_zoom
+
+			xscroll -= (new_point.cx - old_point.cx) * get_scale()
+			yscroll -= (new_point.cy - old_point.cy) * get_scale()
 			render()
 			return
 		}
 
 		xscroll += event.deltaX
 		yscroll += event.deltaY
+
 		render()
 	}
 
@@ -224,13 +259,24 @@
 		}
 
 		grid = JSON.parse(json)
+		width = grid.length
+		height = grid[0].length
+		regenerate()
 		render()
 	}
 
 	function clear() {
 		//if (!confirm('Are you sure you want to clear?')) return
 		grid = gen_grid(width, height)
+		regenerate()
 		render()
+	}
+
+	function export_svg() {
+		svg_path_driver.str = ''
+		canvas_generator.driver = svg_path_driver
+		generate(canvas_generator, grid)
+		navigator.clipboard.writeText(svg_path_driver.str)
 	}
 </script>
 
@@ -244,17 +290,53 @@
 		on:wheel={wheel}
 	/>
 
-	<!-- Header -->
-	<div class="flex flex-row items-center gap-2 p-8 items-center" bind:clientHeight={header_height}>
-		<div class="i-pixelarticons-image min-w-6 min-h-6" />
-		<h1>Flowgrid</h1>
-		<!-- <span>(work in progress post-jam version)</span> -->
-		<div class="flex-grow-1" />
-		<div class="flex flex-row items-stretch h-full">
-			<button on:click={save}>Save</button>
-			<div class="bg-fg h-full" />
-			<button on:click={load}>Load</button>
-			<button on:click={clear}>Clear</button>
+	<!-- Floating -->
+	<div class="color-bg dark:color-fg mix-blend-difference">
+		<!-- Top Left -->
+		<div class="absolute top-8 left-8 min-h-8 flex flex-row items-center gap-2 items-center">
+			<div class="i-pixelarticons-image min-w-6 min-h-6" />
+			<h1>Flowgrid</h1>
+			<span>(work in progress post-jam version)</span>
 		</div>
+
+		<!-- Top right -->
+		<div class="absolute top-8 right-8 min-h-8 flex flex-row items-center gap-2 items-center">
+			<div class="flex flex-row items-stretch self-stretch">
+				<button on:click={save}>Save</button>
+				<button on:click={load}>Load</button>
+				<button on:click={clear}>Clear</button>
+				<button on:click={export_svg}>Export</button>
+			</div>
+		</div>
+
+		<!-- Bottom right -->
+		<div class="absolute bottom-8 right-8 min-h-8 flex flex-row items-center gap-2 items-center">
+			<div class="flex flex-row items-stretch self-stretch">
+				{#if xscroll != 0 || yscroll != 0 || zoom != 1}
+					<button
+						on:click={() => {
+							xscroll = 0
+							yscroll = 0
+							zoom = 1
+							render()
+						}}>Center</button
+					>
+				{/if}
+			</div>
+		</div>
+	</div>
+
+	<div class="absolute bottom-8 left-8 color-fg">
+		Export output
+		<svg
+			version="1.1"
+			width="640"
+			height="320"
+			viewBox="0 0 32 16"
+			xmlns="http://www.w3.org/2000/svg"
+			class="bg-bg border-fg border-4"
+		>
+			<path fill="currentColor" d={svg_path_driver.str} />
+		</svg>
 	</div>
 </div>

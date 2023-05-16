@@ -18,6 +18,7 @@
 		--fg: hsl(var(--hue), 7%, 6%);
 		--bg: hsl(var(--hue), 100%, 95%);
 	}
+
 	@media (prefers-color-scheme: dark) {
 		:global(body) {
 			--fg: hsl(var(--hue), 100%, 95%);

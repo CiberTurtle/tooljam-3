@@ -1,6 +1,6 @@
 type Grid = [boolean[]]
 
-export function generate(ctx: CanvasRenderingContext2D, grid: Grid): void {
+export function generate(driver: GeneratorDriver, grid: Grid): void {
 	const width = grid.length
 	const height = grid[0].length
 	const BOUNDS = false
@@ -10,8 +10,6 @@ export function generate(ctx: CanvasRenderingContext2D, grid: Grid): void {
 			return grid[x][y]
 		return BOUNDS
 	}
-
-	ctx.beginPath()
 
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
@@ -27,59 +25,59 @@ export function generate(ctx: CanvasRenderingContext2D, grid: Grid): void {
 
 			if (c) {
 				// if (!t && r && b && !l && !tl) {
-				// 	outer_curve_lg(ctx, x, y, 0, 0)
+				// 	driver.full_outer_corner(x, y, 0, 0)
 				// 	continue
 				// }
 				// if (!t && !r && b && l && !tr) {
-				// 	outer_curve_lg(ctx, x, y, 1, 0)
+				// 	driver.full_outer_corner(x, y, 1, 0)
 				// 	continue
 				// }
 				// if (t && r && !b && !l && !bl) {
-				// 	outer_curve_lg(ctx, x, y, 0, 1)
+				// 	driver.full_outer_corner(x, y, 0, 1)
 				// 	continue
 				// }
 				// if (t && !r && !b && l && !br) {
-				// 	outer_curve_lg(ctx, x, y, 1, 1)
+				// 	driver.full_outer_corner(x, y, 1, 1)
 				// 	continue
 				// }
 
 				if (!t && !l && !tl)
-					outer_curve(ctx, x, y, 0, 0)
+					driver.quad_outer_corner(x, y, 0, 0)
 				else {
-					block(ctx, x, y, 0, 0)
+					driver.quad_fill(x, y, 0, 0)
 				}
 
 				if (!t && !r && !tr)
-					outer_curve(ctx, x, y, 1, 0)
+					driver.quad_outer_corner(x, y, 1, 0)
 				else {
-					block(ctx, x, y, 1, 0)
+					driver.quad_fill(x, y, 1, 0)
 				}
 
 				if (!b && !l && !bl)
-					outer_curve(ctx, x, y, 0, 1)
+					driver.quad_outer_corner(x, y, 0, 1)
 				else {
-					block(ctx, x, y, 0, 1)
+					driver.quad_fill(x, y, 0, 1)
 				}
 
 				if (!b && !r && !br)
-					outer_curve(ctx, x, y, 1, 1)
+					driver.quad_outer_corner(x, y, 1, 1)
 				else {
-					block(ctx, x, y, 1, 1)
+					driver.quad_fill(x, y, 1, 1)
 				}
 
 				continue
 
 				if (!b && bl)
-					inner_curve(ctx, x, y + 1, 0, 0)
+					driver.quad_inner_corner(x, y + 1, 0, 0)
 
 				if (!b && br)
-					inner_curve(ctx, x, y + 1, 1, 0)
+					driver.quad_inner_corner(x, y + 1, 1, 0)
 
 				if (!t && tl)
-					inner_curve(ctx, x, y - 1, 0, 1)
+					driver.quad_inner_corner(x, y - 1, 0, 1)
 
 				if (!t && tr)
-					inner_curve(ctx, x, y - 1, 1, 1)
+					driver.quad_inner_corner(x, y - 1, 1, 1)
 
 				continue
 			}
@@ -89,77 +87,115 @@ export function generate(ctx: CanvasRenderingContext2D, grid: Grid): void {
 			// TODO Have filled tiles handle placing inner curves which will fix some
 			//      of the bugs with `outer_curve_lg` and optimize the algorithm a lot.
 			if (t && l)
-				inner_curve(ctx, x, y, 0, 0)
+				driver.quad_inner_corner(x, y, 0, 0)
 			if (t && r)
-				inner_curve(ctx, x, y, 1, 0)
+				driver.quad_inner_corner(x, y, 1, 0)
 			if (b && l)
-				inner_curve(ctx, x, y, 0, 1)
+				driver.quad_inner_corner(x, y, 0, 1)
 			if (r && b)
-				inner_curve(ctx, x, y, 1, 1)
+				driver.quad_inner_corner(x, y, 1, 1)
 			continue
 			if (t && l && !tl)
-				inner_curve(ctx, x, y, 0, 0)
+				driver.quad_inner_corner(x, y, 0, 0)
 			if (t && r && !tr)
-				inner_curve(ctx, x, y, 1, 0)
+				driver.quad_inner_corner(x, y, 1, 0)
 			if (b && l && !bl)
-				inner_curve(ctx, x, y, 0, 1)
+				driver.quad_inner_corner(x, y, 0, 1)
 			if (r && b && !br)
-				inner_curve(ctx, x, y, 1, 1)
+				driver.quad_inner_corner(x, y, 1, 1)
 		}
 	}
-
-	ctx.fill()
 }
 
-export function block(ctx: CanvasRenderingContext2D, x: number, y: number, xflip: number, yflip: number): void {
-	x = x + xflip / 2
-	y = y + yflip / 2
-	ctx.moveTo(x, y)
-	ctx.lineTo(x + .5, y)
-	ctx.lineTo(x + .5, y + .5)
-	ctx.lineTo(x, y + .5)
-	// ctx.lineTo(x+ .5, y+.5)
-	// ctx.fillRect(x + xflip / 2, y + yflip / 2, .5, .5)
+export type GeneratorDriver = {
+	quad_fill: (x: number, y: number, xflip: number, yflip: number) => void
+	quad_outer_corner: (x: number, y: number, xflip: number, yflip: number) => void
+	quad_inner_corner: (x: number, y: number, xflip: number, yflip: number) => void
+	full_outer_corner: (x: number, y: number, xflip: number, yflip: number) => void
 }
 
-export function outer_curve(ctx: CanvasRenderingContext2D, x: number, y: number, xflip: number, yflip: number): void {
-	// ctx.beginPath()
-	ctx.moveTo(x + .5, y + .5)
-	let rotation = Math.PI
-	if (xflip == 1 && yflip == 1)
-		rotation = 0
-	else if (yflip == 1)
-		rotation = Math.PI / 2
-	else if (xflip == 1)
-		rotation = Math.PI / 2 * 3
-	ctx.ellipse(x + .5, y + .5, .5, .5, rotation, 0, Math.PI / 2)
-	// ctx.moveTo(x + xflip, y + .5)
-	// ctx.quadraticCurveTo(x + xflip, y + yflip, x + .5, y + yflip)
-	// ctx.lineTo(x + .5, y + .5)
-	// ctx.fill()
+export class CircleGeneratorDriver implements GeneratorDriver {
+	driver!: Driver
+
+	quad_fill(x: number, y: number, xflip: number, yflip: number) {
+		x = x + xflip / 2
+		y = y + yflip / 2
+		this.driver.move(x, y)
+		this.driver.line(x + .5, y)
+		this.driver.line(x + .5, y + .5)
+		this.driver.line(x, y + .5)
+	}
+	quad_outer_corner(x: number, y: number, xflip: number, yflip: number) {
+		this.driver.move(x + xflip, y + .5)
+		this.driver.quad(x + xflip, y + yflip, x + .5, y + yflip)
+		this.driver.line(x + .5, y + .5)
+		return
+		this.driver.move(x + .5, y + .5)
+		let rotation = Math.PI
+		if (xflip == 1)
+			rotation += Math.PI / 2
+		if (yflip == 1)
+			rotation += Math.PI
+		if (xflip == 1 && yflip == 1)
+			rotation = 0
+		else if (yflip == 1)
+			rotation = Math.PI / 2
+		else if (xflip == 1)
+			rotation = Math.PI / 2 * 3
+		this.driver.ellipse(x + .5, y + .5, .5, .5, rotation, Math.PI / 2)
+	}
+	quad_inner_corner(x: number, y: number, xflip: number, yflip: number) {
+		this.driver.move(x + xflip, y + (1 - yflip))
+		this.driver.line(x + xflip, y + .5)
+		this.driver.quad(x + xflip, y + yflip, x + .5, y + yflip)
+		this.driver.line(x + xflip, y + yflip)
+	}
+	full_outer_corner(x: number, y: number, xflip: number, yflip: number) { }
 }
 
-export function outer_curve_lg(ctx: CanvasRenderingContext2D, x: number, y: number, xflip: number, yflip: number): void {
-	// ctx.beginPath()
-	let rotation = Math.PI
-	if (xflip == 1 && yflip == 1)
-		rotation = 0
-	else if (yflip == 1)
-		rotation = Math.PI / 2
-	else if (xflip == 1)
-		rotation = Math.PI / 2 * 3
-	ctx.ellipse(x + (1 - xflip), y + (1 - yflip), 1, 1, rotation, 0, Math.PI / 2)
-	// ctx.moveTo(x + xflip, y + .5)
-	// ctx.quadraticCurveTo(x + xflip, y + yflip, x + .5, y + yflip)
-	ctx.lineTo(x + (1 - xflip), y + (1 - yflip))
-	// ctx.fill()
+export type Driver = {
+	move: (x: number, y: number) => void
+	line: (x: number, y: number) => void
+	quad: (cx: number, cy: number, x: number, y: number) => void
+	ellipse: (x: number, y: number, rx: number, ry: number, angle: number, end: number) => void
 }
 
-export function inner_curve(ctx: CanvasRenderingContext2D, x: number, y: number, xflip: number, yflip: number): void {
-	// ctx.beginPath()
-	ctx.moveTo(x + xflip, y + (1 - yflip))
-	ctx.lineTo(x + xflip, y + .5)
-	ctx.quadraticCurveTo(x + xflip, y + yflip, x + .5, y + yflip)
-	ctx.lineTo(x + xflip, y + yflip)
-	// ctx.fill()
+export class PathDriver implements Driver {
+	path!: Path2D
+
+	move(x: number, y: number) {
+		this.path.moveTo(x, y)
+	}
+
+	line(x: number, y: number) {
+		this.path.lineTo(x, y)
+	}
+
+	quad(cx: number, cy: number, x: number, y: number) {
+		this.path.quadraticCurveTo(cx, cy, x, y)
+	}
+
+	ellipse(x: number, y: number, rx: number, ry: number, angle: number, end: number) {
+		this.path.ellipse(x, y, rx, ry, angle, 0, end)
+	}
+}
+
+export class SvgPathDriver implements Driver {
+	str = ''
+
+	move(x: number, y: number) {
+		this.str += `M ${x} ${y} `
+	}
+
+	line(x: number, y: number) {
+		this.str += `L ${x} ${y} `
+	}
+
+	quad(cx: number, cy: number, x: number, y: number) {
+		this.str += `Q ${cx} ${cy} ${x} ${y} `
+	}
+
+	ellipse(x: number, y: number, rx: number, ry: number, angle: number, end: number) {
+		// this.str += `A ${x} ${y}`
+	}
 }
