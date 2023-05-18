@@ -117,7 +117,7 @@ export type GeneratorDriver = {
 export class CircleGeneratorDriver implements GeneratorDriver {
 	driver!: Driver
 
-	quad_fill(x: number, y: number, xflip: number, yflip: number) {
+	quad_fill(x: number, y: number, xflip: number, yflip: number): void {
 		x = x + xflip / 2
 		y = y + yflip / 2
 		this.driver.move(x, y)
@@ -125,7 +125,7 @@ export class CircleGeneratorDriver implements GeneratorDriver {
 		this.driver.line(x + .5, y + .5)
 		this.driver.line(x, y + .5)
 	}
-	quad_outer_corner(x: number, y: number, xflip: number, yflip: number) {
+	quad_outer_corner(x: number, y: number, xflip: number, yflip: number): void {
 		this.driver.move(x + xflip, y + .5)
 		this.driver.quad(x + xflip, y + yflip, x + .5, y + yflip)
 		this.driver.line(x + .5, y + .5)
@@ -144,13 +144,13 @@ export class CircleGeneratorDriver implements GeneratorDriver {
 			rotation = Math.PI / 2 * 3
 		this.driver.ellipse(x + .5, y + .5, .5, .5, rotation, Math.PI / 2)
 	}
-	quad_inner_corner(x: number, y: number, xflip: number, yflip: number) {
+	quad_inner_corner(x: number, y: number, xflip: number, yflip: number): void {
 		this.driver.move(x + xflip, y + (1 - yflip))
 		this.driver.line(x + xflip, y + .5)
 		this.driver.quad(x + xflip, y + yflip, x + .5, y + yflip)
 		this.driver.line(x + xflip, y + yflip)
 	}
-	full_outer_corner(x: number, y: number, xflip: number, yflip: number) { }
+	full_outer_corner(x: number, y: number, xflip: number, yflip: number): void { }
 }
 
 export type Driver = {
@@ -163,19 +163,19 @@ export type Driver = {
 export class PathDriver implements Driver {
 	path!: Path2D
 
-	move(x: number, y: number) {
+	move(x: number, y: number): void {
 		this.path.moveTo(x, y)
 	}
 
-	line(x: number, y: number) {
+	line(x: number, y: number): void {
 		this.path.lineTo(x, y)
 	}
 
-	quad(cx: number, cy: number, x: number, y: number) {
+	quad(cx: number, cy: number, x: number, y: number): void {
 		this.path.quadraticCurveTo(cx, cy, x, y)
 	}
 
-	ellipse(x: number, y: number, rx: number, ry: number, angle: number, end: number) {
+	ellipse(x: number, y: number, rx: number, ry: number, angle: number, end: number): void {
 		this.path.ellipse(x, y, rx, ry, angle, 0, end)
 	}
 }
@@ -183,19 +183,19 @@ export class PathDriver implements Driver {
 export class SvgPathDriver implements Driver {
 	str = ''
 
-	move(x: number, y: number) {
+	move(x: number, y: number): void {
 		this.str += `M ${x} ${y} `
 	}
 
-	line(x: number, y: number) {
+	line(x: number, y: number): void {
 		this.str += `L ${x} ${y} `
 	}
 
-	quad(cx: number, cy: number, x: number, y: number) {
+	quad(cx: number, cy: number, x: number, y: number): void {
 		this.str += `Q ${cx} ${cy} ${x} ${y} `
 	}
 
-	ellipse(x: number, y: number, rx: number, ry: number, angle: number, end: number) {
+	ellipse(x: number, y: number, rx: number, ry: number, angle: number, end: number): void {
 		// this.str += `A ${x} ${y}`
 	}
 }

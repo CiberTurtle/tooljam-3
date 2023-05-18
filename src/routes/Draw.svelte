@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { smart_canvas } from '$lib/directives/canvas'
+	import { Popover, PopoverButton, PopoverPanel } from '@rgossiaux/svelte-headlessui'
 	import { onMount } from 'svelte'
-	import { PathDriver, CircleGeneratorDriver, generate, SvgPathDriver } from './generator'
+	import { optimize } from 'svgo'
+	import { CircleGeneratorDriver, PathDriver, SvgPathDriver, generate } from './generator'
 
 	type Grid = [boolean[]]
 	type PointInfo = {
@@ -173,9 +175,10 @@
 		ctx.translate(xoffset - xscroll, yoffset - yscroll)
 		ctx.beginPath()
 		ctx.fillStyle = fg
-		ctx.lineWidth = 6
-		ctx.globalCompositeOperation = 'difference'
-		const dot_size = lerp(0.5, 3, smoothstep(0.5, 1, zoom))
+		ctx.strokeStyle = fg
+		ctx.lineWidth = 4
+		// ctx.globalCompositeOperation = 'difference'
+		const dot_size = lerp(0.5, 2, smoothstep(0.5, 1, zoom))
 		for (let y = 0; y <= height; y++) {
 			for (let x = 0; x <= width; x++) {
 				ctx.moveTo(x * get_scale(), y * get_scale())
@@ -184,7 +187,7 @@
 		}
 		ctx.strokeRect(0, 0, width * get_scale(), height * get_scale())
 		ctx.fill()
-		ctx.globalCompositeOperation = 'source-over'
+		// ctx.globalCompositeOperation = 'source-over'
 
 		ctx.save()
 		ctx.resetTransform()
@@ -235,6 +238,7 @@
 			const new_point = transform_point(event)
 			const zoom_delta = zoom - old_zoom
 
+			// TODO: Make this work properly
 			xscroll -= (new_point.cx - old_point.cx) * get_scale()
 			yscroll -= (new_point.cy - old_point.cy) * get_scale()
 			render()
@@ -276,7 +280,33 @@
 		svg_path_driver.str = ''
 		canvas_generator.driver = svg_path_driver
 		generate(canvas_generator, grid)
-		navigator.clipboard.writeText(svg_path_driver.str)
+		let svg = `<svg version="1.1" width="${width * 20}" height="${
+			height * 20
+		}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" stroke="none" d="${
+			svg_path_driver.str
+		}" /></svg>`
+
+		svg = optimize(svg, { multipass: true }).data
+
+		save_file('unnamed.svg', svg, 'image/svg+xml')
+	}
+
+	function save_file(filename: string, content: any, type = 'image/svg+xml') {
+		// Create element with <a> tag
+		const link = document.createElement('a')
+
+		// Create a blog object with the file content which you want to add to the file
+		const file = new Blob([content], { type })
+
+		// Add file content in the object URL
+		link.href = URL.createObjectURL(file)
+
+		// Add file name
+		link.download = filename
+
+		// Add click event to <a> tag to save file.
+		link.click()
+		URL.revokeObjectURL(link.href)
 	}
 </script>
 
@@ -305,7 +335,14 @@
 				<button on:click={save}>Save</button>
 				<button on:click={load}>Load</button>
 				<button on:click={clear}>Clear</button>
-				<button on:click={export_svg}>Export</button>
+				<Popover class="relative">
+					<PopoverButton>Solutions</PopoverButton>
+
+					<PopoverPanel class="absolute z-10 w-96 bg-fg color-bg isolate">
+						Hello world
+						<button on:click={export_svg}>Export</button>
+					</PopoverPanel>
+				</Popover>
 			</div>
 		</div>
 
@@ -324,19 +361,5 @@
 				{/if}
 			</div>
 		</div>
-	</div>
-
-	<div class="absolute bottom-8 left-8 color-fg">
-		Export output
-		<svg
-			version="1.1"
-			width="640"
-			height="320"
-			viewBox="0 0 32 16"
-			xmlns="http://www.w3.org/2000/svg"
-			class="bg-bg border-fg border-4"
-		>
-			<path fill="currentColor" d={svg_path_driver.str} />
-		</svg>
 	</div>
 </div>
