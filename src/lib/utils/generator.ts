@@ -1,8 +1,9 @@
-type Grid = [boolean[]]
+import type { View } from '$lib/models/interfaces'
 
-export function generate(driver: GeneratorDriver, grid: Grid): void {
-	const width = grid.length
-	const height = grid[0].length
+export function generate(driver: GeneratorDriver, view: View): void {
+	const width = view.width
+	const height = view.height
+	const grid = view.grid
 	const BOUNDS = false
 
 	function try_get(x: number, y: number): boolean {
@@ -108,6 +109,7 @@ export function generate(driver: GeneratorDriver, grid: Grid): void {
 }
 
 export type GeneratorDriver = {
+	driver: Driver
 	quad_fill: (x: number, y: number, xflip: number, yflip: number) => void
 	quad_outer_corner: (x: number, y: number, xflip: number, yflip: number) => void
 	quad_inner_corner: (x: number, y: number, xflip: number, yflip: number) => void
@@ -115,7 +117,8 @@ export type GeneratorDriver = {
 }
 
 export class CircleGeneratorDriver implements GeneratorDriver {
-	driver!: Driver
+	// dude trust me it's not null I swear
+	driver: Driver = null!
 
 	quad_fill(x: number, y: number, xflip: number, yflip: number): void {
 		x = x + xflip / 2
@@ -125,6 +128,7 @@ export class CircleGeneratorDriver implements GeneratorDriver {
 		this.driver.line(x + .5, y + .5)
 		this.driver.line(x, y + .5)
 	}
+
 	quad_outer_corner(x: number, y: number, xflip: number, yflip: number): void {
 		this.driver.move(x + xflip, y + .5)
 		this.driver.quad(x + xflip, y + yflip, x + .5, y + yflip)

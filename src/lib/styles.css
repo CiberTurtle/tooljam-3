@@ -1,4 +1,13 @@
-@unocss;
+@layer base, components, utilities;
+
+@layer base {
+  @unocss preflights;
+}
+
+@layer utilities {
+  @unocss default;
+  @unocss;
+}
 
 * {
 	user-select: none;
@@ -13,8 +22,7 @@ h1 {
 }
 
 button {
-	@apply: px-4 font-bold;
-	/* text-shadow: 0 2px theme('colors.bg'); */
+	@apply flex flex-row gap-2 items-center justify-center px-4 py-2 font-bold bg-bg color-fg;
 }
 
 button:hover {
@@ -22,5 +30,5 @@ button:hover {
 }
 
 button:active {
-	@apply: decoration-none bg-bg color-fg dark:bg-fg dark:color-bg;
+	@apply decoration-none bg-fg color-bg;
 }

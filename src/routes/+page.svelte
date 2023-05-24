@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { setContext } from 'svelte'
-	import Draw from './Draw.svelte'
-	import type { Doc } from '$lib/doc'
+	import { version } from '$app/environment'
+	import { view } from '$lib/app'
+	import { Editor, Overlay } from '$lib/shared/components'
 </script>
 
-<div class="h-screen max-h-screen grid">
-	<Draw />
+<div class="relative h-screen max-h-screen grid">
+	<Editor />
+	<Overlay />
 </div>

@@ -5,5 +5,6 @@ import UnoCSS from 'unocss/vite'
 export default defineConfig({
 	plugins: [
 		UnoCSS(),
-		sveltekit()]
+		sveltekit(),
+	]
 })

@@ -27,6 +27,8 @@ export default defineConfig({
 	],
 	transformers: [
 		transformerVariantGroup(),
-		transformerDirectives(),
+		transformerDirectives({
+			applyVariable: ['--apply'],
+		}),
 	],
 })
