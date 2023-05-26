@@ -1,6 +1,7 @@
 import { version } from '$app/environment'
 import { view } from '$lib/app'
 import type { View } from '$lib/models/interfaces'
+import { toast } from '$lib/utils'
 import { get } from 'svelte/store'
 
 export type Session = {
@@ -26,28 +27,28 @@ export function save_session() {
 export function load_session() {
 	let session_json = localStorage.getItem(SESSION_KEY)
 	if (!session_json) {
-		console.log('No session data exists')
+		toast.send("Welcome to Flowgrid!")
 		return
 	}
 
 	let session = JSON.parse(session_json) as Session
 	if (!session) {
-		console.error('Session data is null')
+		toast.send("Not loading previous session because session is corrupt")
 		return
 	}
 
 	if (session.version != version) {
-		console.log('Incompatible session version')
+		toast.send("Not loading previous session because session is from a different version")
 		return
 	}
 
 	if (session.is_loading) {
-		console.error('Last session crashed before during load, ignoring session')
+		toast.send("Not loading previous session because previous session caused a crash")
 		return
 	}
 
 	if (false && import.meta.env.DEV) {
-		console.log('Ignoring session')
+		console.log('Ignoring session because we are in developer mode')
 		return
 	}
 
@@ -59,6 +60,5 @@ export function load_session() {
 	view.regenerate()
 	view.render()
 
-	console.log('Loaded previous session')
-
+	toast.send('Restored session')
 }

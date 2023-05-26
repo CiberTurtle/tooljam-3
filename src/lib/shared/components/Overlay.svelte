@@ -2,6 +2,9 @@
 	import { view } from '$lib/app'
 	import { Popover, PopoverButton, PopoverPanel } from '@rgossiaux/svelte-headlessui'
 	import Export from './Export.svelte'
+	import { toast } from '$lib/utils'
+	import { toasts } from '$lib/utils/toast'
+	import { fade } from 'svelte/transition'
 
 	let export_open = false
 
@@ -35,6 +38,7 @@
 		$view.yscroll = 0
 		$view.zoom = 1
 		view.render()
+		toast.send('Centered view')
 	}
 </script>
 
@@ -73,5 +77,19 @@
 				<button on:click={center}>Center</button>
 			{/if}
 		</div>
+	</div>
+
+	<div
+		class="absolute bottom-8 left-0 right-0 pointer-events-none flex flex-col items-center gap-2 color-fg"
+	>
+		{#each $toasts as toast (toast.id)}
+			<div
+				class="bg-fg color-bg px-2 py-0.5"
+				in:fade={{ duration: 150 }}
+				out:fade={{ duration: 1000 }}
+			>
+				{toast.text}
+			</div>
+		{/each}
 	</div>
 </div>

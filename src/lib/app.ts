@@ -1,9 +1,11 @@
 import { get, writable } from 'svelte/store'
-import type { View } from './models/interfaces/view'
-import { CircleGeneratorDriver, generate_grid } from './utils'
+import { type View, EditorState } from '$lib/models/interfaces'
+import { CircleGeneratorDriver, generate_grid } from '$lib/utils'
 
 export function create_view(width: number, height: number) {
 	let store = writable<View>({
+		state: EditorState.Edit,
+
 		name: 'Unnamed',
 		width: width,
 		height: height,

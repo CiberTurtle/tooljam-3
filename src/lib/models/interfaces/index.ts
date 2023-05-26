@@ -1,2 +1,2 @@
-export { type View } from './view'
+export * from './view'
 export type Grid = [boolean[]]

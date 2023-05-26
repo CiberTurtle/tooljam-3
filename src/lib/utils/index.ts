@@ -4,6 +4,7 @@ export * from './download'
 export * from './generator'
 export * from './export'
 export * from './session'
+export * as toast from './toast'
 
 export function generate_grid(width: number, height: number): Grid {
 	let grid = new Array(width) as Grid

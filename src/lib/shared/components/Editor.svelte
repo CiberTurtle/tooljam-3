@@ -30,6 +30,10 @@
 
 	let fill_value = true
 	let pointer_down = false
+	let drag_xorigin = 0
+	let drag_yorigin = 0
+	let drag_xscroll = 0
+	let drag_yscroll = 0
 	function pointerdown(event: PointerEvent) {
 		event.preventDefault()
 		if (document.activeElement) (document.activeElement as HTMLElement).blur()
@@ -45,13 +49,23 @@
 		)
 
 		const point = transform_point(event)
-		if (point.ix < 0 || point.iy < 0 || point.ix >= $view.width || point.iy >= $view.height) return
+		console.log(event.buttons)
 
-		fill_value = !$view.grid[point.ix][point.iy]
-		$view.grid[point.ix][point.iy] = fill_value
+		if (event.buttons == 1) {
+			if (point.ix < 0 || point.iy < 0 || point.ix >= $view.width || point.iy >= $view.height)
+				return
 
-		regenerate()
-		render()
+			fill_value = !$view.grid[point.ix][point.iy]
+			$view.grid[point.ix][point.iy] = fill_value
+
+			regenerate()
+			render()
+		} else {
+			drag_xorigin = event.clientX
+			drag_yorigin = event.clientY
+			drag_xscroll = $view.xscroll
+			drag_yscroll = $view.yscroll
+		}
 	}
 
 	function pointermove(event: PointerEvent) {
@@ -61,14 +75,22 @@
 
 		const point = transform_point(event)
 
-		if (point.ix < 0 || point.iy < 0 || point.ix >= $view.width || point.iy >= $view.height) return
+		console.log(event.buttons)
+		if (event.buttons == 1) {
+			if (point.ix < 0 || point.iy < 0 || point.ix >= $view.width || point.iy >= $view.height)
+				return
 
-		const value = $view.grid[point.ix][point.iy]
-		if (value == fill_value) return
-		$view.grid[point.ix][point.iy] = fill_value
+			const value = $view.grid[point.ix][point.iy]
+			if (value == fill_value) return
+			$view.grid[point.ix][point.iy] = fill_value
 
-		regenerate()
-		render()
+			regenerate()
+			render()
+		} else {
+			$view.xscroll = drag_xorigin - event.clientX + drag_xscroll
+			$view.yscroll = drag_yorigin - event.clientY + drag_yscroll
+			render()
+		}
 	}
 
 	function transform_point(event: { clientX: number; clientY: number }): PointInfo {
@@ -232,9 +254,10 @@
 
 <canvas
 	bind:this={canvas}
-	class="absolute w-full h-full"
+	class="absolute w-full h-full cursor-crosshair"
 	use:smart_canvas={resized}
 	on:pointerdown={pointerdown}
 	on:pointermove={pointermove}
 	on:wheel={wheel}
+	on:contextmenu|preventDefault
 />

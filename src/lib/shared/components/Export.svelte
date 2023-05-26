@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { generator, view } from '$lib/app'
+	import { EditorState } from '$lib/models/interfaces'
 	import { create_svg, download } from '$lib/utils'
+	import CopyButton from '../ui/CopyButton.svelte'
 
 	export let open = false
 
@@ -23,12 +25,17 @@
 
 {#if open}
 	<div class="flex flex-col p-6 border-4 border-fg bg-bg color-fg">
-		<div class="flex flex-row mb-4">
+		<div class="flex flex-row mb-6">
 			<h1 class="flex-grow">Export</h1>
 			<button class="flat px-2" on:click={() => (open = false)}>
 				<div class="i-pixelarticons-close min-w-6 min-h-6" />
 			</button>
 		</div>
+
+		<button class="line" on:click={() => ($view.state = EditorState.ExportRegion)}>
+			<div class="i-pixelarticons-drop-area min-w-6 min-h-6" />
+			Set export region
+		</button>
 
 		<label>
 			<span> Scale factor </span>
@@ -42,21 +49,27 @@
 					Download SVG
 				</button>
 
-				<button class="px-2" on:click={copy_data_url} title="Copy Data URL">
-					<div class="i-pixelarticons-copy min-w-6 min-h-6" />
-				</button>
+				<CopyButton class="bg-fg color-bg" title="Copy Data URL" on:click={copy_data_url} />
 			</div>
 		</div>
 	</div>
 {/if}
 
 <style lang="postcss">
-	button:not(.flat) {
-		@apply py-2 bg-fg color-bg;
+	button {
+		@apply py-2;
+	}
+
+	button.line {
+		@apply border-2 border-fg;
+	}
+
+	button:not(.flat, .line) {
+		@apply bg-fg color-bg;
 	}
 
 	label {
-		@apply relative;
+		@apply relative mt-6;
 	}
 
 	input {
