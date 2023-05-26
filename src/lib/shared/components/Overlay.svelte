@@ -10,12 +10,13 @@
 
 	function save() {
 		localStorage.setItem('flowgrid', JSON.stringify($view.grid))
+		toast.send('Saved')
 	}
 
 	function load() {
 		const json = localStorage.getItem('flowgrid')
 		if (!json) {
-			alert('No save data')
+			alert('No save data found')
 			return
 		}
 
@@ -24,10 +25,13 @@
 		$view.height = $view.grid[0].length
 		view.regenerate()
 		view.render()
+
+		toast.send('Loaded save data')
 	}
 
 	function clear() {
 		//if (!confirm('Are you sure you want to clear?')) return
+		toast.send('Cleared canvas')
 		view.clear()
 		view.regenerate()
 		view.render()

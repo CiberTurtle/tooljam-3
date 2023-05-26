@@ -29,17 +29,26 @@
 
 <style lang="postcss">
 	:global(:root) {
-		@apply font-sans;
 		--hue: 60;
+		--contrast: 10%;
 
-		--fg: hsl(var(--hue), 7%, 6%);
-		--bg: hsl(var(--hue), 100%, 95%);
+		--dark: hsl(var(--hue), 5%, var(--contrast));
+		--light: hsl(var(--hue), 100%, calc(100% - var(--contrast)));
+
+		--bg: var(--light);
+		--fg: var(--dark);
+
+		@apply font-sans;
 	}
 
 	@media (prefers-color-scheme: dark) {
-		:global(body) {
-			--fg: hsl(var(--hue), 100%, 95%);
-			--bg: hsl(var(--hue), 7%, 6%);
+		:global(:root) {
+			--bg: var(--dark);
+			--fg: var(--light);
 		}
+	}
+
+	:global(body) {
+		@apply bg-bg color-fg;
 	}
 </style>

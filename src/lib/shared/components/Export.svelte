@@ -32,9 +32,17 @@
 			</button>
 		</div>
 
-		<button class="line" on:click={() => ($view.state = EditorState.ExportRegion)}>
-			<div class="i-pixelarticons-drop-area min-w-6 min-h-6" />
-			Set export region
+		<button
+			class:line={$view.state != EditorState.ExportRegion}
+			disabled={$view.state == EditorState.ExportRegion}
+			on:click={() => ($view.state = EditorState.ExportRegion)}
+		>
+			{#if $view.state == EditorState.ExportRegion}
+				Select a region...
+			{:else}
+				<div class="i-pixelarticons-drop-area min-w-6 min-h-6" />
+				Set export region
+			{/if}
 		</button>
 
 		<label>
@@ -74,6 +82,10 @@
 
 	input {
 		@apply appearance-none bg-transparent px-4 py-2 outline outline-2 outline-fg;
+	}
+
+	input[type='number'] {
+		-moz-appearance: textfield;
 	}
 
 	label > span {

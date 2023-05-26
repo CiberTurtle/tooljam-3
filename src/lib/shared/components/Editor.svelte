@@ -13,6 +13,8 @@
 		iy: number
 	}
 
+	let cursor = 'default'
+
 	let canvas: HTMLCanvasElement
 	let ctx: CanvasRenderingContext2D
 	let path_driver = new PathDriver()
@@ -70,10 +72,12 @@
 
 	function pointermove(event: PointerEvent) {
 		event.preventDefault()
+		const point = transform_point(event)
+
+		cursor = 'default'
+		if (point.cx > $view.width) cursor = 'ew-resize'
 
 		if (!pointer_down) return
-
-		const point = transform_point(event)
 
 		console.log(event.buttons)
 		if (event.buttons == 1) {
@@ -173,12 +177,13 @@
 		ctx.translate(xoffset - $view.xscroll, yoffset - $view.yscroll)
 		ctx.beginPath()
 		ctx.fillStyle = fg
-		ctx.strokeStyle = fg
-		ctx.lineWidth = 4
+		// ctx.strokeStyle = fg
+		ctx.strokeStyle = 'hsl(60deg, 100%, 75%)'
+		ctx.lineWidth = 2
 		// ctx.globalCompositeOperation = 'difference'
-		const dot_size = lerp(0.5, 2, smoothstep(0.5, 1, $view.zoom))
-		for (let y = 0; y <= $view.height; y++) {
-			for (let x = 0; x <= $view.width; x++) {
+		const dot_size = lerp(0.0, 2, smoothstep(0.5, 1, $view.zoom))
+		for (let y = 1; y < $view.height; y++) {
+			for (let x = 1; x < $view.width; x++) {
 				ctx.moveTo(x * get_scale(), y * get_scale())
 				ctx.ellipse(x * get_scale(), y * get_scale(), dot_size, dot_size, 0, 0, Math.PI * 2)
 			}
@@ -260,4 +265,5 @@
 	on:pointermove={pointermove}
 	on:wheel={wheel}
 	on:contextmenu|preventDefault
+	style="cursor: {cursor};"
 />

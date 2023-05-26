@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store'
+import { get, writable } from 'svelte/store'
 
 export const send = (text: string) => {
 	console.log('TOAST: ' + text)
@@ -10,6 +10,8 @@ export const send = (text: string) => {
 
 	toasts.update((value) => {
 		value.push(toast)
+		if (value.length > 3)
+			value.shift()
 		return value
 	})
 
